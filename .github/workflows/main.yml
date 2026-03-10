@@ -7,11 +7,13 @@ on:
     branches: [main, master]
 
 jobs:
-
   # ── Step 1: Test + Coverage Gate ──────────────────────────────
   test:
     name: Test & Coverage Gate
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./jest-app # <--- CHANGE THIS to your actual folder name
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,6 +23,8 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          # Tells the cache where to find the lock file
+          cache-dependency-path: ./jest-app/package-lock.json 
 
       - run: npm ci
 
@@ -38,7 +42,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: coverage/
+          path: jest-app/coverage/ # Ensure path matches your subfolder
 
   # ── Step 2: SonarQube Analysis ────────────────────────────────
   sonar:
@@ -53,7 +57,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: coverage
-          path: coverage/
+          path: jest-app/coverage/
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
@@ -61,16 +65,16 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
+          projectBaseDir: ./jest-app # <--- Tells Sonar where the code is
           args: >
-            -Dsonar.projectKey=asfasdfasfa
-            -Dsonar.projectName=asfasdfasfa
+            -Dsonar.projectKey=jest-sonarqube
+            -Dsonar.projectName=jest-sonarqube
             -Dsonar.sources=src
             -Dsonar.tests=src
             -Dsonar.inclusions=src/**/*.ts,src/**/*.tsx
-            -Dsonar.exclusions=src/**/*.test.ts,src/**/*.test.tsx,src/setupTests.ts,src/main.tsx,node_modules/**,dist/**,coverage/**
+            -Dsonar.exclusions=src/**/*.test.ts,src/**/*.test.tsx,src/setupTests.ts,src/main.tsx
             -Dsonar.test.inclusions=src/**/*.test.ts,src/**/*.test.tsx
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.testExecutionReportPaths=coverage/test-reporter.xml
             -Dsonar.typescript.tsconfigPath=tsconfig.json
 
       - name: SonarQube Quality Gate
@@ -80,12 +84,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-  # ── Step 3: Deploy (only on push to main/master) ──────────────
+  # ── Step 3: Deploy ──────────────────────────────────────────
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: sonar
     if: github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: ./jest-app
     steps:
       - uses: actions/checkout@v4
 
@@ -93,9 +100,10 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: ./jest-app/package-lock.json
 
       - run: npm ci
       - run: npm run build
 
       - name: Deploy
-        run: echo " Deploy your app here (Vercel / S3 / Azure / etc.)"
+        run: echo "Deploying app from jest-app/dist..."
