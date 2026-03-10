@@ -28,7 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # FIX: Explicitly install ts-node and ts-jest to handle jest.config.ts
       - name: Setup Test Environment Binaries
         run: npm install --save-dev ts-node ts-jest
 
@@ -37,7 +36,6 @@ jobs:
 
       - name: Check coverage is ≥ 80%
         run: |
-          # Use the correct path relative to the working-directory
           FOUND=$(grep -h "^LF:" coverage/lcov.info | awk -F: '{s+=$2} END{print s}')
           HIT=$(grep -h "^LH:" coverage/lcov.info | awk -F: '{s+=$2} END{print s}')
           PCT=$(( HIT * 100 / FOUND ))
@@ -48,7 +46,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          # path here is relative to REPO ROOT
           path: jest-app/coverage/
 
   # ── Step 2: SonarQube Analysis ────────────────────────────────
@@ -64,14 +61,14 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: coverage
-          # Download into the folder where Sonar expects it
           path: jest-app/coverage/
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          # REPLACE the URL below with your actual Public SonarQube URL
+          SONAR_HOST_URL: "https://your-public-sonar-url.com"
         with:
           projectBaseDir: ./jest-app
           args: >
@@ -90,7 +87,7 @@ jobs:
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: "https://reimagined-xylophone-q79wgx5gpx6634gjw-9000.app.github.dev"
 
   # ── Step 3: Deploy ──────────────────────────────────────────
   deploy:
