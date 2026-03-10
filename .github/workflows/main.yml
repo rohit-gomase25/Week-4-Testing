@@ -23,7 +23,8 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ./jest-app/package-lock.json 
+          # FIXED: Path must be relative to the REPO ROOT, not the working-directory
+          cache-dependency-path: jest-app/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -67,20 +68,10 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          # REPLACE the URL below with your actual Public SonarQube URL
           SONAR_HOST_URL: "https://refactored-cod-pjgxq65qpqxvfq9-9000.app.github.dev"
         with:
           projectBaseDir: ./jest-app
-          args: >
-            -Dsonar.projectKey=jestt-sonarqube
-            -Dsonar.projectName=jestt-sonarqube
-            -Dsonar.sources=src
-            -Dsonar.tests=src
-            -Dsonar.inclusions=src/**/*.ts,src/**/*.tsx
-            -Dsonar.exclusions=src/**/*.test.ts,src/**/*.test.tsx,src/setupTests.ts,src/main.tsx
-            -Dsonar.test.inclusions=src/**/*.test.ts,src/**/*.test.tsx
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-            -Dsonar.typescript.tsconfigPath=tsconfig.json
+          # Arguments are read from your sonar-project.properties file
 
       - name: SonarQube Quality Gate
         uses: SonarSource/sonarqube-quality-gate-action@v1
@@ -88,6 +79,9 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: "https://refactored-cod-pjgxq65qpqxvfq9-9000.app.github.dev"
+        with:
+          # FIXED: Point to the metadata file created inside the subfolder
+          scanMetadataReportFile: jest-app/.scannerwork/report-task.txt
 
   # ── Step 3: Deploy ──────────────────────────────────────────
   deploy:
@@ -105,7 +99,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ./jest-app/package-lock.json
+          cache-dependency-path: jest-app/package-lock.json
 
       - run: npm ci
       - run: npm run build
