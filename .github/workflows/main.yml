@@ -68,12 +68,12 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           # REPLACE the URL below with your actual Public SonarQube URL
-          SONAR_HOST_URL: "https://reimagined-xylophone-q79wgx5gpx6634gjw-9000.app.github.dev/"
+          SONAR_HOST_URL: "https://refactored-cod-pjgxq65qpqxvfq9-9000.app.github.dev"
         with:
           projectBaseDir: ./jest-app
           args: >
-            -Dsonar.projectKey=jest-sonarqube
-            -Dsonar.projectName=jest-sonarqube
+            -Dsonar.projectKey=jestt-sonarqube
+            -Dsonar.projectName=jestt-sonarqube
             -Dsonar.sources=src
             -Dsonar.tests=src
             -Dsonar.inclusions=src/**/*.ts,src/**/*.tsx
@@ -87,7 +87,7 @@ jobs:
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: "https://reimagined-xylophone-q79wgx5gpx6634gjw-9000.app.github.dev/"
+          SONAR_HOST_URL: "https://refactored-cod-pjgxq65qpqxvfq9-9000.app.github.dev"
 
   # ── Step 3: Deploy ──────────────────────────────────────────
   deploy:
