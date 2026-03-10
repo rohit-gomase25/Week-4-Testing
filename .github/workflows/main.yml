@@ -25,13 +25,19 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ./jest-app/package-lock.json 
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
+
+      # FIX: Explicitly install ts-node and ts-jest to handle jest.config.ts
+      - name: Setup Test Environment Binaries
+        run: npm install --save-dev ts-node ts-jest
 
       - name: Run tests with coverage
         run: npm run test:coverage -- --ci --forceExit
 
       - name: Check coverage is ≥ 80%
         run: |
+          # Use the correct path relative to the working-directory
           FOUND=$(grep -h "^LF:" coverage/lcov.info | awk -F: '{s+=$2} END{print s}')
           HIT=$(grep -h "^LH:" coverage/lcov.info | awk -F: '{s+=$2} END{print s}')
           PCT=$(( HIT * 100 / FOUND ))
@@ -42,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          # We need to provide the path relative to the REPO ROOT
+          # path here is relative to REPO ROOT
           path: jest-app/coverage/
 
   # ── Step 2: SonarQube Analysis ────────────────────────────────
@@ -58,6 +64,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: coverage
+          # Download into the folder where Sonar expects it
           path: jest-app/coverage/
 
       - name: SonarQube Scan
